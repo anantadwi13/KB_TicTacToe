@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <style>
+      td{
+        width: 100px;
+        height: 100px;
+        text-align: center;
+      }
+      table{
+        margin-left: auto;
+        margin-right: auto;
+      }
+      body{
+        background-color: #000a12;
+      }
+      .table-bordered td{
+        border: 1px solid #212121;
+      }
+    </style>
+    <title>TicTacToe</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row align-items-center" style="height: 100vh;">
+        <div class="offset-4 col-4 card">
+          <div class="card-body">
+            <div id="container-hasil" class="text-center mb-4">
+              <div id="hasil">
+
+              </div>
+            </div>
+            <div class="text-center mb-4">
+              <a href="./index.html" class="btn btn-warning">
+                Ulangi
+              </a>
+            </div>
+            <div class="text-center">
+              <table class="table-bordered">
+                <tr>
+                  <td id="1" data-val="-1"></td>
+                  <td id="2" data-val="-1"></td>
+                  <td id="3" data-val="-1"></td>
+                </tr>
+                <tr>
+                  <td id="4" data-val="-1"></td>
+                  <td id="5" data-val="-1"></td>
+                  <td id="6" data-val="-1"></td>
+                </tr>
+                <tr>
+                  <td id="7" data-val="-1"></td>
+                  <td id="8" data-val="-1"></td>
+                  <td id="9" data-val="-1"></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      const TYPE_X = 1;
+      const TYPE_0 = 0;
+      const TYPE_FREE = -1;
+      const NEG_INF = -1000000000;
+      const POS_INF = 1000000000;
+      var finish = false;
+
+      function getPossibleMoves(board) {
+        var possible = [];
+        for (var i = 1; i<=9; i++){
+          if(board[i]===TYPE_FREE){
+            possible.push(i);
+          }
+        }
+        return possible;
+      }
+
+      function max(a, b) {
+        if (a>b)
+          return a;
+        return b;
+      }
+
+      function min(a, b) {
+        if (a<b)
+          return a;
+        return b;
+      }
+      function isWinner(bo, le) {
+        return ((bo[7] === le && bo[8] === le && bo[9] === le) ||
+                (bo[4] === le && bo[5] === le && bo[6] === le) ||
+                (bo[1] === le && bo[2] === le && bo[3] === le) ||
+                (bo[7] === le && bo[4] === le && bo[1] === le) ||
+                (bo[8] === le && bo[5] === le && bo[2] === le) ||
+                (bo[9] === le && bo[6] === le && bo[3] === le) ||
+                (bo[7] === le && bo[5] === le && bo[3] === le) ||
+                (bo[9] === le && bo[5] === le && bo[1] === le));
+      }
+      function isBoardFull(board) {
+        for (var i = 1; i < board.length; i++){
+          if (board[i] === TYPE_FREE) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+
+      function maxVal(board, currTurn, alpha, beta){
+        if (isWinner(board, TYPE_X))
+          return 0;
+        else if (isWinner(board, TYPE_0))
+          return 100;
+        else if (isBoardFull(board))
+          return 50;
+
+        var nextTurn;
+        if (currTurn === TYPE_X)
+          nextTurn = TYPE_0;
+        else
+          nextTurn = TYPE_X;
+
+        var score = NEG_INF;
+        var possibleMoves = getPossibleMoves(board);
+
+        for (var i = 0; i<possibleMoves.length; i++){
+          var copyBoard = board.slice();
+          copyBoard[possibleMoves[i]] = currTurn;
+          score = max(score, minVal(copyBoard, nextTurn, alpha, beta));
+          if (score>=beta)
+            return score;
+          alpha = max(alpha, score);
+        }
+        return score;
+      }
+
+      function minVal(board, currTurn, alpha, beta){
+        if (isWinner(board, TYPE_X))
+          return 0;
+        else if (isWinner(board, TYPE_0))
+          return 100;
+        else if (isBoardFull(board))
+          return 50;
+
+        var nextTurn;
+        if (currTurn === TYPE_X)
+          nextTurn = TYPE_0;
+        else
+          nextTurn = TYPE_X;
+
+        var score = POS_INF;
+        var possibleMoves = getPossibleMoves(board);
+        for (var i = 0; i<possibleMoves.length; i++){
+          var copyBoard = board.slice();
+          copyBoard[possibleMoves[i]] = currTurn;
+          score = min(score, maxVal(copyBoard, nextTurn, alpha, beta));
+          if (score<=alpha)
+            return score;
+          beta = min(beta, score);
+        }
+        return score;
+      }
+
+      function getComputerMove(board, computerLetter){
+        var playerLetter;
+        if (computerLetter === TYPE_X)
+          playerLetter = TYPE_0;
+        else
+          playerLetter = TYPE_X;
+
+        var possibleMoves = getPossibleMoves(board);
+        var alpha = NEG_INF;
+        var beta = POS_INF;
+        var score = NEG_INF;
+        var move = -1;
+
+        for (var i=0;i<possibleMoves.length;i++){
+          var copyBoard = board.slice();
+          copyBoard[possibleMoves[i]] = computerLetter;
+          var s = minVal(copyBoard, playerLetter, alpha, beta);
+
+          if (s > alpha) {
+            score = s;
+            move = possibleMoves[i];
+          }
+          alpha = max(alpha, score);
+        }
+        return move;
+      }
+
+      $("td").click(function () {
+        if (finish)
+          return;
+
+        if ($(this).data("val") !== TYPE_FREE) {
+          return;
+        }
+        
+        $(this).data("val", TYPE_X);
+        $(this).html("X");
+        var board = [];
+
+        for (var i = 1; i <= 9; i++){
+          board[i] = $("#"+i).data("val");
+        }
+
+        var move = getComputerMove(board, TYPE_0);
+        board[move] = TYPE_0;
+        $("#"+move).data("val",TYPE_0);
+        $("#"+move).html("O");
+
+
+        if (isWinner(board, TYPE_0))  {
+          $("#hasil").html("Computer Win");
+          $("#container-hasil").addClass("alert alert-danger");
+          finish = true;
+        }
+        else if(isWinner(board, TYPE_X)){
+          $("#hasil").html("You Win");
+          $("#container-hasil").addClass("alert alert-success");
+          
+          finish = true;
+        }
+        else{
+          if (isBoardFull(board)) {
+            $("#hasil").html("Game Seri");
+            $("#container-hasil").addClass("alert alert-info");
+            finish = true;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
